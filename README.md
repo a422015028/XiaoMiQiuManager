@@ -1,5 +1,5 @@
 # 小米球管理 (XiaoMiQiuManager)
-
+# 小米球官网 (https://manager.xiaomiqiu.com)
 一款用于管理小米球（XiaoMiQiu）网络代理/隧道服务的 Android 管理工具，采用 Material You 现代设计语言，界面美观、操作便捷。
 
 ---
