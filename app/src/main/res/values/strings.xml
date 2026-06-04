@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">小米球管理</string>
+    <string name="edit_config">编辑配置</string>
+    <string name="new_config">新建配置</string>
+    <string name="save">保存</string>
+    <string name="cancel">取消</string>
+    <string name="delete">删除</string>
+    <string name="set_default">设为默认</string>
+    <string name="refresh">刷新</string>
+</resources>
