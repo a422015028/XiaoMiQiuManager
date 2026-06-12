@@ -23,8 +23,8 @@ android {
         applicationId "com.xiaomiqiu.manager"
         minSdk 24
         targetSdk 34
-        versionCode 202606121
-        versionName "1.2"
+        versionCode 202606122
+        versionName "1.2.1"
     }
 
     signingConfigs {
