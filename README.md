@@ -1,5 +1,5 @@
 # 小米球管理 (XiaoMiQiuManager)
-# 小米球官网 (https://manager.xiaomiqiu.com)
+# 小米球官网 https://manager.xiaomiqiu.com
 一款用于管理小米球（XiaoMiQiu）网络代理/隧道服务的 Android 管理工具，采用 Material You 现代设计语言，界面美观、操作便捷。
 
 ---
@@ -34,7 +34,7 @@
 
 | 层级 | 技术/库 |
 |------|---------|
-| 开发语言 | Java 21 |
+| 开发语言 | Java 17 |
 | 构建工具 | Gradle（Android Gradle Plugin 8.7.0）|
 | 编译 SDK | 34（Android 14）|
 | 最低 SDK | 24（Android 7.0）|
@@ -86,7 +86,7 @@ app/src/main/
 ### 环境要求
 
 - Android Studio Hedgehog 或更高版本
-- JDK 21
+- JDK 17
 - Android SDK 34
 
 ### 构建步骤

@@ -10,3 +10,5 @@
 # Ignore Gradle build output directory
 build
 local.properties
+release.jks
+keystore.properties

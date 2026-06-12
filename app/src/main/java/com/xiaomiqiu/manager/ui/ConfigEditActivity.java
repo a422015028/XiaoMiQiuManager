@@ -105,8 +105,6 @@ public class ConfigEditActivity extends AppCompatActivity {
         config.setDefault(cbDefault.isChecked());
 
         configManager.saveConfig(config);
-
-        Toast.makeText(this, "配置已保存", Toast.LENGTH_SHORT).show();
         finish();
     }
 

@@ -75,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
     private ConfigManager configManager;
     private Handler handler;
     private ExecutorService executorService;
+    private boolean spinnerInitialized = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,6 +134,12 @@ public class MainActivity extends AppCompatActivity {
                 Config config = (Config) parent.getItemAtPosition(position);
                 if (config != null) {
                     displayConfig(config);
+                    if (spinnerInitialized) {
+                        Config currentDefault = configManager.getDefaultConfig();
+                        if (currentDefault == null || !currentDefault.getId().equals(config.getId())) {
+                            setDefaultConfig(config);
+                        }
+                    }
                 }
             }
 
@@ -229,9 +236,9 @@ public class MainActivity extends AppCompatActivity {
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerConfigs.setAdapter(spinnerAdapter);
 
-        // Select default config
+        spinnerInitialized = false;
         Config defaultConfig = configManager.getDefaultConfig();
-        if (defaultConfig != null) {
+        if (defaultConfig != null && !configs.isEmpty()) {
             for (int i = 0; i < configs.size(); i++) {
                 if (configs.get(i).getId().equals(defaultConfig.getId())) {
                     spinnerConfigs.setSelection(i);
@@ -245,6 +252,7 @@ public class MainActivity extends AppCompatActivity {
             // 建议默认路径依然使用 /data/local/tmp/xmq 避免 SELinux 拦截
             tvBinaryPath.setText("路径: /data/local/tmp/xmq/xiaomiqiu");
         }
+        spinnerInitialized = true;
     }
 
     private void displayConfig(Config config) {
@@ -465,7 +473,6 @@ public class MainActivity extends AppCompatActivity {
     private void setDefaultConfig(Config config) {
         configManager.setDefaultConfig(config.getId());
         loadConfigs();
-        Toast.makeText(this, "已设为默认配置", Toast.LENGTH_SHORT).show();
     }
 
     @Override

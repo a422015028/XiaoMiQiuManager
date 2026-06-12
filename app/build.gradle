@@ -2,6 +2,19 @@ plugins {
     id 'com.android.application'
 }
 
+import java.util.Properties
+
+def releaseKeystorePropertiesFile = rootProject.file('release-key.properties')
+def localKeystorePropertiesFile = rootProject.file('keystore.properties')
+def releaseKeystoreProperties = new Properties()
+def localKeystoreProperties = new Properties()
+if (releaseKeystorePropertiesFile.exists()) {
+    releaseKeystoreProperties.load(new FileInputStream(releaseKeystorePropertiesFile))
+}
+if (localKeystorePropertiesFile.exists()) {
+    localKeystoreProperties.load(new FileInputStream(localKeystorePropertiesFile))
+}
+
 android {
     namespace 'com.xiaomiqiu.manager'
     compileSdk 34
@@ -10,14 +23,83 @@ android {
         applicationId "com.xiaomiqiu.manager"
         minSdk 24
         targetSdk 34
-        versionCode 202606041
-        versionName "1.1"
+        versionCode 202606121
+        versionName "1.2"
+    }
+
+    signingConfigs {
+        release {
+            def signingStoreFile = null
+            def signingStorePassword = null
+            def signingKeyAlias = null
+            def signingKeyPassword = null
+
+            if (releaseKeystorePropertiesFile.exists()) {
+                signingStoreFile = releaseKeystoreProperties['storeFile']
+                signingStorePassword = releaseKeystoreProperties['storePassword']
+                signingKeyAlias = releaseKeystoreProperties['keyAlias']
+                signingKeyPassword = releaseKeystoreProperties['keyPassword']
+            }
+
+            if (signingStoreFile == null && localKeystorePropertiesFile.exists()) {
+                signingStoreFile = localKeystoreProperties['storeFile']
+            }
+            if (signingStorePassword == null && localKeystorePropertiesFile.exists()) {
+                signingStorePassword = localKeystoreProperties['storePassword']
+            }
+            if (signingKeyAlias == null && localKeystorePropertiesFile.exists()) {
+                signingKeyAlias = localKeystoreProperties['keyAlias']
+            }
+            if (signingKeyPassword == null && localKeystorePropertiesFile.exists()) {
+                signingKeyPassword = localKeystoreProperties['keyPassword']
+            }
+
+            if (signingStoreFile == null) {
+                signingStoreFile = System.getenv('KEYSTORE_FILE')
+            }
+            if (signingStoreFile == null) {
+                def defaultLocalKeystore = rootProject.file('release.jks')
+                if (defaultLocalKeystore.exists()) {
+                    signingStoreFile = defaultLocalKeystore.absolutePath
+                }
+            }
+            if (signingStorePassword == null) {
+                signingStorePassword = System.getenv('KEYSTORE_PASSWORD')
+            }
+            if (signingKeyAlias == null) {
+                signingKeyAlias = System.getenv('KEY_ALIAS')
+            }
+            if (signingKeyPassword == null) {
+                signingKeyPassword = System.getenv('KEY_PASSWORD')
+            }
+
+            if (signingStoreFile != null) {
+                def storeFileCandidate = file(signingStoreFile)
+                if (!storeFileCandidate.exists()) {
+                    def rootStoreFile = rootProject.file(signingStoreFile)
+                    if (rootStoreFile.exists()) {
+                        storeFileCandidate = rootStoreFile
+                    }
+                }
+                storeFile storeFileCandidate
+            }
+            if (signingStorePassword != null) {
+                storePassword signingStorePassword
+            }
+            if (signingKeyAlias != null) {
+                keyAlias signingKeyAlias
+            }
+            if (signingKeyPassword != null) {
+                keyPassword signingKeyPassword
+            }
+        }
     }
 
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
     compileOptions {

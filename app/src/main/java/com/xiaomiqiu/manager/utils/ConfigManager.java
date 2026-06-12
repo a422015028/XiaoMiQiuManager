@@ -37,11 +37,14 @@ public class ConfigManager {
 
     public void saveConfig(Config config) {
         List<Config> configs = getAllConfigs();
+        String currentDefaultId = prefs.getString(KEY_DEFAULT_CONFIG_ID, null);
 
-        // Check if config already exists
         boolean found = false;
+        boolean oldConfigWasDefault = false;
         for (int i = 0; i < configs.size(); i++) {
-            if (configs.get(i).getId().equals(config.getId())) {
+            Config existing = configs.get(i);
+            if (existing.getId().equals(config.getId())) {
+                oldConfigWasDefault = existing.isDefault();
                 configs.set(i, config);
                 found = true;
                 break;
@@ -52,13 +55,28 @@ public class ConfigManager {
             configs.add(config);
         }
 
-        // If this is set as default, unset others
+        String defaultIdToStore = currentDefaultId;
         if (config.isDefault()) {
             for (Config c : configs) {
                 if (!c.getId().equals(config.getId())) {
                     c.setDefault(false);
                 }
             }
+            defaultIdToStore = config.getId();
+        } else if (oldConfigWasDefault && config.getId().equals(currentDefaultId)) {
+            defaultIdToStore = null;
+            for (Config c : configs) {
+                if (c.isDefault()) {
+                    defaultIdToStore = c.getId();
+                    break;
+                }
+            }
+        }
+
+        if (defaultIdToStore != null) {
+            prefs.edit().putString(KEY_DEFAULT_CONFIG_ID, defaultIdToStore).apply();
+        } else {
+            prefs.edit().remove(KEY_DEFAULT_CONFIG_ID).apply();
         }
 
         saveConfigs(configs);
