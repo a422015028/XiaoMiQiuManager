@@ -15,6 +15,8 @@ import com.xiaomiqiu.manager.ui.MainActivity;
 
 public class NotificationHelper {
 
+    private static final int NOTIFICATION_ID = 1000;
+
     public static void showNotification(Context context, String title, String message) {
         Intent intent = new Intent(context, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -33,7 +35,7 @@ public class NotificationHelper {
 
         NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (manager != null) {
-            manager.notify((int) System.currentTimeMillis(), builder.build());
+            manager.notify(NOTIFICATION_ID, builder.build());
         }
     }
 

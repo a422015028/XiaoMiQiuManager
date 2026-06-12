@@ -11,6 +11,7 @@ import android.service.quicksettings.TileService;
 import androidx.annotation.RequiresApi;
 
 import com.xiaomiqiu.manager.model.Config;
+import com.xiaomiqiu.manager.service.MonitorService;
 import com.xiaomiqiu.manager.utils.ConfigManager;
 import com.xiaomiqiu.manager.utils.NotificationHelper;
 import com.xiaomiqiu.manager.utils.RootUtils;
@@ -65,15 +66,15 @@ public class QuickTileService extends TileService {
                 return;
             }
 
+            startMonitorService();
+
             boolean isRunning = RootUtils.isProcessRunning("xiaomiqiu");
 
             if (isRunning) {
                 // Stop process
                 RootUtils.CommandResult result = RootUtils.stopProcess("xiaomiqiu");
-                if (result.isSuccess()) {
-                    NotificationHelper.showNotification(this, "小米球", "服务已停止");
-                } else {
-                    NotificationHelper.showNotification(this, "小米球", "停止失败: " + result.error);
+                if (!result.isSuccess()) {
+                    NotificationHelper.showNotification(this, "错误", "停止失败: " + result.error);
                 }
             } else {
                 // Write config and start process
@@ -89,9 +90,7 @@ public class QuickTileService extends TileService {
                 }
 
                 RootUtils.CommandResult startResult = RootUtils.startProcess(config.getBinaryPath());
-                if (startResult.isSuccess()) {
-                    NotificationHelper.showNotification(this, "小米球", "服务已启动");
-                } else {
+                if (!startResult.isSuccess()) {
                     NotificationHelper.showNotification(this, "错误", "启动失败: " + startResult.error);
                 }
             }
@@ -122,5 +121,14 @@ public class QuickTileService extends TileService {
         }
 
         tile.updateTile();
+    }
+
+    private void startMonitorService() {
+        Intent serviceIntent = new Intent(this, MonitorService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent);
+        } else {
+            startService(serviceIntent);
+        }
     }
 }

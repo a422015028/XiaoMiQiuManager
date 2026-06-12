@@ -1,7 +1,10 @@
 package com.xiaomiqiu.manager.ui;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
@@ -14,6 +17,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.RotateAnimation;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -76,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
     private Handler handler;
     private ExecutorService executorService;
     private boolean spinnerInitialized = false;
+    private BroadcastReceiver statusReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,6 +91,13 @@ public class MainActivity extends AppCompatActivity {
         configManager = new ConfigManager(this);
         handler = new Handler(Looper.getMainLooper());
         executorService = Executors.newSingleThreadExecutor();
+
+        statusReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                checkStatus();
+            }
+        };
 
         initViews();
         checkPermissions();
@@ -179,16 +192,42 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         loadConfigs();
-        // 延迟执行状态检查
+        registerReceiver(statusReceiver, new IntentFilter("com.xiaomiqiu.manager.STATUS_CHANGED"), Context.RECEIVER_NOT_EXPORTED);
         handler.postDelayed(this::checkStatus, 300);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        try {
+            unregisterReceiver(statusReceiver);
+        } catch (Exception ignored) {}
     }
 
     private void checkStatus() {
         if (executorService == null || executorService.isShutdown()) return;
+        if (btnRefresh == null) return;
+
+        // 禁用按钮防止重复点击
+        btnRefresh.setEnabled(false);
+        
+        // 开始旋转动画
+        RotateAnimation rotate = new RotateAnimation(
+                0, 360,
+                Animation.RELATIVE_TO_SELF, 0.5f,
+                Animation.RELATIVE_TO_SELF, 0.5f
+        );
+        rotate.setDuration(500);
+        rotate.setRepeatCount(Animation.INFINITE);
+        btnRefresh.startAnimation(rotate);
         
         executorService.execute(() -> {
             boolean isRunning = RootUtils.isProcessRunning("xiaomiqiu");
-            handler.post(() -> updateUIStatus(isRunning));
+            handler.post(() -> {
+                btnRefresh.clearAnimation();
+                btnRefresh.setEnabled(true);
+                updateUIStatus(isRunning);
+            });
         });
     }
 
@@ -382,14 +421,12 @@ public class MainActivity extends AppCompatActivity {
             if (isRunning) {
                 // 停止服务
                 handler.post(() -> Toast.makeText(this, "正在停止服务...", Toast.LENGTH_SHORT).show());
-                NotificationHelper.showNotification(this, "小米球", "正在停止服务...");
 
                 RootUtils.CommandResult result = RootUtils.stopProcess("xiaomiqiu");
 
                 handler.post(() -> {
                     if (result.isSuccess()) {
                         Toast.makeText(this, "服务已停止", Toast.LENGTH_SHORT).show();
-                        NotificationHelper.showNotification(this, "小米球", "服务已停止");
                     } else {
                         Toast.makeText(this, "停止失败", Toast.LENGTH_LONG).show();
                         NotificationHelper.showNotification(this, "错误", "停止失败");
@@ -400,7 +437,6 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 // 启动服务前：释放二进制文件
                 handler.post(() -> Toast.makeText(this, "正在准备核心文件...", Toast.LENGTH_SHORT).show());
-                NotificationHelper.showNotification(this, "小米球", "正在启动服务...");
 
                 boolean isPrepared = prepareBinary(config.getBinaryPath());
                 if (!isPrepared) {
@@ -434,7 +470,6 @@ public class MainActivity extends AppCompatActivity {
                 handler.post(() -> {
                     if (startResult.isSuccess()) {
                         Toast.makeText(this, "服务已启动", Toast.LENGTH_SHORT).show();
-                        NotificationHelper.showNotification(this, "小米球", "服务已启动");
                     } else {
                         Toast.makeText(this, "启动失败", Toast.LENGTH_LONG).show();
                         NotificationHelper.showNotification(this, "错误", "启动失败");
